@@ -1,59 +1,50 @@
-import numpy as np
+print("Hello world")
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('data.csv')
+print(data)
+
+plt.scatter(data.x, data.y, color="blue")
 
 
-class LinearRegression:
-    def __init__(self, learning_rate=0.01, iterations=1000):
-        self.learning_rate = learning_rate
-        self.iterations = iterations
-        self.theta = None
+def loss_function(m, b, points):
+    total_error = 0
+    for i in range(len(points)):
+        x = points.iloc[i].x
+        y = points.iloc[i].y
+        total_error += (y-(m*x+b)**2)
+    total_error / float(len(points))
 
-    def fit(self, X, y):
-        # Number of training examples and features
-        m, n = X.shape
+def gradient_descent(m_now, b_now, points, L):
+    m_gradient = 0
+    b_gradient = 0
 
-        # Add a column of ones to X for the intercept term
-        X = np.c_[np.ones((m, 1)), X]
+    n = len(points)
 
-        # Initialize theta (parameters) to zero
-        self.theta = np.zeros(n + 1)
+    for i in range(n):
+        x = points.iloc[i].x
+        y = points.iloc[i].y
 
-        # Gradient Descent
-        for _ in range(self.iterations):
-            gradients = self._compute_gradients(X, y, m)
-            self.theta -= self.learning_rate * gradients
+        m_gradient += -(2/n) * x * (y-(m_now *x+b_now))
+        b_gradient += -(2/n) * (y-(m_now *x+b_now))
 
-    def _compute_gradients(self, X, y, m):
-        # Predicted values
-        predictions = X.dot(self.theta)
+    m = m_now - m_gradient * L
+    b = b_now - b_gradient * L
+    return m, b
 
-        # Compute gradients
-        errors = predictions - y
-        gradients = (1 / m) * X.T.dot(errors)
+m = 0
+b = 0
+L = 0.0001
+epochs = 1000
 
-        return gradients
+for i in range(epochs):
+    if i % 50 == 0:
+        print(f"Epoch: {i}")
+    m, b = gradient_descent(m, b, data, L)
 
-    def predict(self, X):
-        # Add a column of ones to X for the intercept term
-        X = np.c_[np.ones((X.shape[0], 1)), X]
-        return X.dot(self.theta)
+print(m, b)
 
-    def cost_function(self, X, y):
-        # Compute the cost (mean squared error)
-        m = len(y)
-        predictions = X.dot(self.theta)
-        cost = (1 / (2 * m)) * np.sum(np.square(predictions - y))
-        return cost
-
-
-# Create some sample data
-X = np.array([[1], [2], [3], [4], [5]])  # Input feature (5 samples)
-y = np.array([2, 4, 6, 8, 10])  # Target variable
-
-# Create and train the model
-model = LinearRegression(learning_rate=0.01, iterations=1000)
-model.fit(X, y)
-
-# Make predictions
-predictions = model.predict(np.array([[6], [7]]))
-
-print("Predicted values:", predictions)
+plt.scatter(data.x, data.y, color="blue")
+plt.plot(list(range(10, 90)), [m*x+b for x in range(10, 90)], color="red")
+plt.show()
